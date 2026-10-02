@@ -1,19 +1,50 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
-
 version: 2
 
-includes:
-  - from_url:
-      url: charmbracelet/meta/main/goreleaser-full.yaml
+before:
+  hooks:
+    - go mod tidy
 
-variables:
-  main: "."
-  scoop_name: charm-gum
-  description: "A tool for glamorous shell scripts"
-  github_url: "https://github.com/charmbracelet/gum"
-  maintainer: "Maas Lalani <maas@charm.sh>"
-  brew_commit_author_name: "Maas Lalani"
-  brew_commit_author_email: "maas@charm.sh"
+builds:
+  - id: gum
+    main: .
+    binary: gum
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.Version={{.Version}} -X main.CommitSHA={{.Commit}}
 
-milestones:
-  - close: true
+archives:
+  - id: gum
+    name_template: "gum_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  prerelease: "false"
+
+brews:
+  - name: gum-ceffo
+    directory: Formula
+    skip_upload: "false"
+    repository:
+      owner: ceffo
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://github.com/ceffo/gum"
+    description: "Fork of charmbracelet/gum, a tool for glamorous shell scripts"
+    license: MIT
+    conflicts:
+      - gum
+    install: |
+      bin.install "gum"
+      generate_completions_from_executable(bin/"gum", "completion")
+      (man1/"gum.1").write Utils.safe_popen_read(bin/"gum", "man")
+    test: |
+      assert_match "gum version", shell_output("#{bin}/gum --version")
