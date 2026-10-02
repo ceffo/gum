@@ -30,7 +30,7 @@ release:
   prerelease: "false"
 
 brews:
-  - name: gum-ceffo
+  - name: gum
     directory: Formula
     skip_upload: "false"
     repository:
@@ -40,8 +40,6 @@ brews:
     homepage: "https://github.com/ceffo/gum"
     description: "Fork of charmbracelet/gum, a tool for glamorous shell scripts"
     license: MIT
-    conflicts:
-      - gum
     install: |
       bin.install "gum"
       generate_completions_from_executable(bin/"gum", "completion")
