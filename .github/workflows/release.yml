@@ -11,14 +11,21 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    env:
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - if: ${{ env.HOMEBREW_TAP_TOKEN == '' }}
+        run: echo "::warning::HOMEBREW_TAP_TOKEN is not set; skipping release"
+      - if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - uses: goreleaser/goreleaser-action@v6
+      - if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: "~> v2"
           args: release --clean
